@@ -31,6 +31,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: sigstore/cosign-installer@main
+
+    - uses: chainguard-dev/actions/melange-build@main
+      with:
+        sign-with-temporary-key: true
+        config: melange.yaml
+        empty-workspace: true
+        archs: x86_64
 
     - id: apko
       uses: distroless/actions/apko-snapshot@main
@@ -38,6 +46,8 @@ jobs:
         config: apko.yaml
         image_refs: apko.images
         base-tag: ghcr.io/${{ github.repository }}
+        keyring-append: /github/workspace/melange.rsa.pub
+        archs: x86_64
 
     - name: Emit Image Refs output
       id: emit-refs
