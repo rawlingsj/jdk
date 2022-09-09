@@ -3,7 +3,7 @@ name: PreSubmit-Build
 on:
   push:
     branches:
-      - cheese
+      - jr-v1
 
 jobs:
   build:
@@ -30,7 +30,7 @@ jobs:
     - uses: chainguard-dev/actions/melange-build@main
       with:
         sign-with-temporary-key: true
-        config: melange.yaml
+        config: melange-glibc.yaml
         empty-workspace: true
         archs: x86_64
 
