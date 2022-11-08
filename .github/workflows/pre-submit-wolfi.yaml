@@ -1,0 +1,42 @@
+name: PreSubmit-Build
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Build Wolfi based OCI image
+    runs-on: ubuntu-latest
+
+    # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        version: [openjdk-11, openjdk-11-jre, openjdk-17, openjdk-17-jre, maven-jdk-11, maven-jdk-17]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2.1.0
+
+    - name: Generate snapshot date
+      id: snapshot-date
+      run: |
+        echo "date=$(date -u +%Y%m%d)" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - uses: sigstore/cosign-installer@main
+
+    - uses: chainguard-images/actions/apko-build@main
+      with:
+        config: apko-${{ matrix.version }}.yaml
+        tag: template:openjdk-${{ matrix.version }}-${{ steps.snapshot-date.outputs.date }}
+        archs: x86_64,aarch64,armv7
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.version }}.tar
+        path: ./output.tar
